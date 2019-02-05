@@ -8,3 +8,5 @@ __pycache__/*
 *.synctex.gz
 *.db
 20news-bydate/*
+.pytest_cache/*
+.idea/*
