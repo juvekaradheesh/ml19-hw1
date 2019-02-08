@@ -58,9 +58,28 @@ Relatedly, cite all outside sources of information and ideas.
 
 \begin{enumerate}
 
-\item (5 points, Based on Murphy 2.2) Suppose a crime has been committed. Blood is found at the scene for which there is no innocent explanation. It is of a type that is present in 1\% of the population. A suspect who has this rare blood type has been charged with the crime.
+\item (5 points) Show what the recursive decision tree learning algorithm would choose for the first split of the following dataset:
 
-The prosecutor claims: ``There is a 1\% chance that the defendant would have the crime blood type if he were innocent. Thus there is a 99\% chance that he is guilty.'' This is known as the \textbf{prosecutor's fallacy}. What is wrong with this argument?
+\begin{tabular}{c|cccc|c}
+\toprule
+ID & $X_1$ & $X_2$& $X_3$ & $X_4$ & $Y$\\
+\midrule
+1 & 0 & 0 & 0 & 0 & 0\\
+2 & 0 & 0 & 0 & 1 & 0\\
+3 & 0 & 0 & 1 & 0 & 0\\
+4 & 0 & 0 & 1 & 1 & 0\\
+5 & 0 & 1 & 0 & 0 & 0\\
+6 & 0 & 1 & 0 & 1 & 1\\ 
+7 & 0 & 1 & 1 & 0 & 1\\ 
+8 & 0 & 1 & 1 & 1 & 1\\ 
+9 & 1 & 0 & 0 & 0 & 1\\ 
+10 & 1 & 0 & 0 & 1 & 1\\ 
+\bottomrule
+\end{tabular}
+
+Assume that the criterion for deciding the best split is entropy reduction (i.e., information gain). If there are any ties, choose the first feature to split on tied for the best score. Show your calculations in your response.
+
+(Hint: this dataset is one of the test cases in the programming assignment, so you should be able to use your answer here to debug your code.)
 
 \item A Bernoulli distribution has the following likelihood function for a data set $\cal D$:
 \begin{align}
@@ -99,6 +118,17 @@ For this homework, you will build two text categorization classifiers: one using
 
 The data is represented in a bag-of-words format, where each post is represented by what words are present in it, without any consideration of the order of the words. 
 
+We have also provided a unit test class in \texttt{grader.py}, which contains unit tests for each type of learning model. These unit tests may be easier to use for debugging in an IDE like PyCharm than the iPython notebook. A successful implementation should pass all unit tests and run through the entire iPython notebook without issues. You can run the unit tests from a *nix command line with the command
+\begin{verbatim}
+python -m unittest -v grader
+\end{verbatim}
+or you can use an IDE's unit test interface. Your grade will be partially based on whether your code passes these tests. The unit tests rely on a package \texttt{timeout\_decorator}, which you can usually install with
+\begin{verbatim}
+pip install timeout_decorator
+\end{verbatim}
+
+Before starting all the tasks, examine the entire codebase. Follow the code from the iPython notebook to see which methods it calls. Make sure you understand what all of the code does. 
+
 Your required tasks follow.
 
 \begin{enumerate}
@@ -131,7 +161,7 @@ Implement additive smoothing (\url{https://en.wikipedia.org/wiki/Additive_smooth
 \[
 \Pr(X) = \frac{(\textrm{\# examples where}~X) + \alpha}{(\textrm{Total \# of examples}) + 2 \alpha}.
 \]
-Notice that if $\alpha = 0$, you get the standard maximum likelihood estimate.
+Notice that if $\alpha = 0$, you get the standard maximum likelihood estimate. Also, make sure to multiply $\alpha$ by the total number of possible outcomes in the distribution. For the label variables in the 20newsgroups data, there are 20 possible outcomes, and for the word-presence features, there are two.
 
 \item (5 points) Finish the functions \texttt{recursive\_tree\_train} and \texttt{decision\_tree\_predict} in \texttt{decision\_tree.py}. Note that \texttt{recursive\_tree\_train} is a helper function used by \texttt{decision\_tree\_train}, which is already completed for you. You'll have to design a way to represent the decision tree in the \texttt{model} object. Your training algorithm should take a parameter that is the maximum depth of the decision tree, and the learning algorithm should then greedily grow a tree of that depth. Use the information-gain measure to determine the branches (hint: you're welcome to use the \texttt{calculate\_information\_gain} function). \cref{alg:decisiontree} is abstract pseudocode describing one way to implement decision tree training. You are welcome to deviate from this somewhat; there are many ways to correctly implement such procedures.
 
