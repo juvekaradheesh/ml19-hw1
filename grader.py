@@ -216,7 +216,7 @@ class GraderTestCase(unittest.TestCase):
 		score, models = cross_validate(self.dummy_learner, self.dummy_predictor, train_data, train_labels, 10, {})
 		print("Finished doing data splitting for cross validation in %f seconds." % (time.time() - start_time))
 
-		assert (time.time() - start_time()) < 1.0, "Cross-validation too slow."
+		assert (time.time() - start_time) < 1.0, "Cross-validation too slow."
 
 	# @timeout_decorator.timeout(60)
 	def test_crossval_correctness(self):
