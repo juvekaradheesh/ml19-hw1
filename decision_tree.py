@@ -45,7 +45,7 @@ def calculate_information_gain(data, labels):
 
         # Prevents Python from outputting a divide-by-zero warning
         with np.errstate(invalid='ignore'):
-            prob_y_given_x = num_y_and_x / num_x
+            prob_y_given_x = num_y_and_x / (num_x+1e-8)
         prob_y_given_x[num_x == 0] = 0
 
         nonzero_entries = prob_y_given_x > 0
@@ -60,7 +60,7 @@ def calculate_information_gain(data, labels):
         # don't have each feature, and n - num_x is the number of examples
         # that don't have each feature
         with np.errstate(invalid='ignore'):
-            prob_y_given_not_x = (num_y - num_y_and_x) / (n - num_x)
+            prob_y_given_not_x = (num_y - num_y_and_x) / ((n - num_x)+1e-8)
         prob_y_given_not_x[n - num_x == 0] = 0
 
         nonzero_entries = prob_y_given_not_x > 0

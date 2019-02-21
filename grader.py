@@ -62,7 +62,8 @@ class GraderTestCase(unittest.TestCase):
 		"""Check that the decision tree implementation is fast."""
 		n = 50000
 		d = 100
-		train_data = csc_matrix(np.random.randint(0, 1, size=(d, n)))
+		#train_data = csc_matrix(np.random.randint(0, 1, size=(d, n))) # Bug: the upper bound is exclusive
+		train_data = csc_matrix(np.random.randint(0, 2, size=(d, n)))
 		train_labels = np.random.randint(0, 5, size=n)
 
 		start_time = time.time()
@@ -127,7 +128,7 @@ class GraderTestCase(unittest.TestCase):
 		model = decision_tree_train(train_data, train_labels, params)
 		predictions = decision_tree_predict(test_data, model)
 
-		accuracy = np.sum(predictions == test_labels) / num_testing
+		accuracy = np.sum(predictions == test_labels) / float(num_testing) # The accuracy will be transformed to Int in Python 2
 
 		print("Decision tree accuracy was %f" % accuracy)
 
