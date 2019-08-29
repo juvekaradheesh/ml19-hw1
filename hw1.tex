@@ -38,7 +38,7 @@
 
 \begin{document}
 
-\section*{Machine Learning Spring 2019 Homework 1}
+\section*{Machine Learning Fall 2019 Homework 1}
 
 Homework must be submitted electronically on Canvas. Make sure to explain you reasoning or show your derivations. Except for answers that are especially straightforward, you will lose points for unjustified answers, even if they are correct. 
 
@@ -118,14 +118,11 @@ For this homework, you will build two text categorization classifiers: one using
 
 The data is represented in a bag-of-words format, where each post is represented by what words are present in it, without any consideration of the order of the words. 
 
-We have also provided a unit test class in \texttt{grader.py}, which contains unit tests for each type of learning model. These unit tests may be easier to use for debugging in an IDE like PyCharm than the iPython notebook. A successful implementation should pass all unit tests and run through the entire iPython notebook without issues. You can run the unit tests from a *nix command line with the command
+We have also provided a unit test class in \texttt{tests.py}, which contains unit tests for each type of learning model. These unit tests may be easier to use for debugging in an IDE like PyCharm than the iPython notebook. A successful implementation should pass all unit tests and run through the entire iPython notebook without issues. You can run the unit tests from a *nix command line with the command
 \begin{verbatim}
-python -m unittest -v grader
+python -m unittest -v tests
 \end{verbatim}
-or you can use an IDE's unit test interface. Your grade will be partially based on whether your code passes these tests. The unit tests rely on a package \texttt{timeout\_decorator}, which you can usually install with
-\begin{verbatim}
-pip install timeout_decorator
-\end{verbatim}
+or you can use an IDE's unit test interface. These tests are not foolproof, so it's possible for code that does not meet the requirements for full credit to pass the tests (and, though it would be surprising, it may be possible for full credit code to fail the tests).
 
 Before starting all the tasks, examine the entire codebase. Follow the code from the iPython notebook to see which methods it calls. Make sure you understand what all of the code does. 
 
