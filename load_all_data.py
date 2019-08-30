@@ -1,28 +1,29 @@
 """This module contains a utility function to load 20news data."""
 import numpy as np
 from scipy.sparse import dok_matrix, csc_matrix
-import shelve
+import pickle
 import os
 import time
 
 
 def load_all_data():
-    """Load 20news data from raw text or from a cached Python shelve file.
+    """Load 20news data from raw text or from a cached Python pickle file.
 
     :return: tuple containing num_words, num_training, num_testing, train_data, test_data, train_labels, test_labels
     :rtype: tuple
     """
-    shelf_file = 'loaded_20news'
+    pickle_file = 'loaded_20news.pkl'
 
     start_time = time.time()
 
-    if os.path.exists(shelf_file + ".db"):
+    if os.path.exists(pickle_file):
 
-        print("Found shelved file. Loading 20news data from file.")
+        print("Found pickle file. Loading 20news data from file.")
         print("Doing so should be faster than loading from raw text, but if the file is corrupted, "
                 "delete it and this script will automatically load from the raw text next time it is run.")
 
-        dictionary = shelve.open(shelf_file)
+        with open(pickle_file, "rb") as in_file:
+            dictionary = pickle.load(in_file)
 
         num_words = dictionary['num_words']
         num_training = dictionary['num_training']
@@ -32,11 +33,9 @@ def load_all_data():
         train_labels = dictionary['train_labels']
         test_labels = dictionary['test_labels']
 
-        dictionary.close()
-
     else:
 
-        print("Shelved file does not exist yet. Loading data from raw text files.")
+        print("Pickled file does not exist yet. Loading data from raw text files.")
 
         train_data_ijv = np.loadtxt('20news-bydate/matlab/train.data', dtype=int)
         test_data_ijv = np.loadtxt('20news-bydate/matlab/test.data', dtype=int)
@@ -75,7 +74,7 @@ def load_all_data():
 
         # save loaded objects to cache file
 
-        dictionary = shelve.open(shelf_file + ".db")
+        dictionary = dict()
 
         dictionary['num_words'] = num_words
         dictionary['num_training'] = num_training
@@ -85,7 +84,8 @@ def load_all_data():
         dictionary['train_labels'] = train_labels
         dictionary['test_labels'] = test_labels
 
-        dictionary.close()
+        with open(pickle_file, "wb") as out_file:
+            pickle.dump(dictionary, out_file)
 
     print("Finished loading in %2.2f seconds." % (time.time() - start_time))
 

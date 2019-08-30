@@ -1,5 +1,4 @@
 """This module includes methods for training and predicting using decision trees."""
-from __future__ import division
 import numpy as np
 
 
@@ -30,8 +29,10 @@ def calculate_information_gain(data, labels):
 
     # print("Full entropy is %d\n" % full_entropy)
 
-    gain = full_entropy * np.ones((1, d))
-    num_x = np.asarray(data.sum(1)).T
+    gain = full_entropy * np.ones(d)
+
+    # we use a matrix dot product to sum to make it more compatible with sparse matrices
+    num_x = data.dot(np.ones(n))
     prob_x = num_x / n
     prob_not_x = 1 - prob_x
 
@@ -40,12 +41,14 @@ def calculate_information_gain(data, labels):
         num_y = np.sum(labels == all_labels[c])
         # this next line sums across the rows of data, multiplied by the
         # indicator of whether each column's label is c. It counts the number
-        # of times each feature is on among examples with label c
-        num_y_and_x = np.asarray(data[:, labels == all_labels[c]].sum(1)).T
+        # of times each feature is on among examples with label c.
+        # We again use the dot product for sparse-matrix compatibility
+        data_with_label = data[:, labels == all_labels[c]]
+        num_y_and_x = data_with_label.dot(np.ones(data_with_label.shape[1]))
 
         # Prevents Python from outputting a divide-by-zero warning
         with np.errstate(invalid='ignore'):
-            prob_y_given_x = num_y_and_x / (num_x+1e-8)
+            prob_y_given_x = num_y_and_x / (num_x + 1e-8)
         prob_y_given_x[num_x == 0] = 0
 
         nonzero_entries = prob_y_given_x > 0
@@ -60,7 +63,7 @@ def calculate_information_gain(data, labels):
         # don't have each feature, and n - num_x is the number of examples
         # that don't have each feature
         with np.errstate(invalid='ignore'):
-            prob_y_given_not_x = (num_y - num_y_and_x) / ((n - num_x)+1e-8)
+            prob_y_given_not_x = (num_y - num_y_and_x) / ((n - num_x) + 1e-8)
         prob_y_given_not_x[n - num_x == 0] = 0
 
         nonzero_entries = prob_y_given_not_x > 0
@@ -69,7 +72,7 @@ def calculate_information_gain(data, labels):
                 cond_entropy = - np.multiply(np.multiply(prob_not_x, prob_y_given_not_x), np.log(prob_y_given_not_x))
             gain[nonzero_entries] -= cond_entropy[nonzero_entries]
 
-    return gain.ravel()
+    return gain
 
 
 def decision_tree_train(train_data, train_labels, params):

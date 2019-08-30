@@ -1,5 +1,4 @@
 """This module includes methods for training and predicting using naive Bayes."""
-from __future__ import division
 import numpy as np
 
 

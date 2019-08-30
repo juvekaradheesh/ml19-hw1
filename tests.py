@@ -2,14 +2,13 @@ import unittest
 import numpy as np
 import time
 # import timeout_decorator
-from scipy.sparse import csc_matrix
 from decision_tree import *
 from naive_bayes import *
 from crossval import *
 from load_all_data import load_all_data
 
 
-class GraderTestCase(unittest.TestCase):
+class Homework1TestCase(unittest.TestCase):
 	@staticmethod
 	def unique_data():
 		"""Set up uniquely identifiable examples"""
@@ -29,8 +28,6 @@ class GraderTestCase(unittest.TestCase):
 		train_data[:, 8] = [1, 0, 0, 0]
 		train_data[:, 9] = [1, 0, 0, 1]
 
-		train_data = csc_matrix(train_data)
-
 		train_labels = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
 
 		return train_data, train_labels
@@ -40,9 +37,22 @@ class GraderTestCase(unittest.TestCase):
 		"""Load 20 newsgroups data"""
 		num_words, num_training, num_testing, train_data, test_data, train_labels, test_labels = load_all_data()
 
+		# do feature selection
+		d = 5000
+		gain = calculate_information_gain(train_data, train_labels)
+
+		# sort features by calculated information gain
+		ranks = gain.argsort()[::-1]
+
+		train_data = train_data[ranks[:d], :]
+		test_data = test_data[ranks[:d], :]
+
+		# convert training data to dense ndarray
+		train_data = train_data.toarray()
+		test_data = test_data.toarray()
+
 		return train_data, train_labels
 
-	# @timeout_decorator.timeout(1)
 	def test_decision_tree_memorization(self):
 		"""Test whether a decision tree can memorize unique data"""
 		train_data, train_labels = self.unique_data()
@@ -57,13 +67,12 @@ class GraderTestCase(unittest.TestCase):
 
 		assert np.all(predictions == train_labels), "Decision tree was unable to memorize 10 unique examples"
 
-	# @timeout_decorator.timeout(10, exception_message="Training too slow.")
-	def test_decision_tree_speed(self):
+	@staticmethod
+	def test_decision_tree_speed():
 		"""Check that the decision tree implementation is fast."""
 		n = 50000
 		d = 100
-		#train_data = csc_matrix(np.random.randint(0, 1, size=(d, n))) # Bug: the upper bound is exclusive
-		train_data = csc_matrix(np.random.randint(0, 2, size=(d, n)))
+		train_data = np.random.randint(0, 2, size=(d, n))
 		train_labels = np.random.randint(0, 5, size=n)
 
 		start_time = time.time()
@@ -72,11 +81,12 @@ class GraderTestCase(unittest.TestCase):
 		predictions = decision_tree_predict(train_data, model)
 		end_time = time.time()
 
+		assert predictions.size == n, "decision_tree_predict didn't return the correct size predictions"
+
 		print("Decision tree training and prediction took %f seconds." % (end_time - start_time))
 
 		assert (end_time - start_time) < 10.0, "Training on a (somewhat) large dataset took longer than 10 seconds."
 
-	# @timeout_decorator.timeout(10)
 	def test_decision_tree_depth(self):
 		"""Test that max_depth is implemented correctly."""
 		train_data, train_labels = self.unique_data()
@@ -92,7 +102,6 @@ class GraderTestCase(unittest.TestCase):
 			num_correct = np.sum(predictions == train_labels)
 			self.assertEqual(num_correct, expected_correct[depth], ("Incorrect accuracy for depth %d." % depth))
 
-	# @timeout_decorator.timeout(10)
 	def test_decision_tree_improvement(self):
 		"""Test that deeper decision trees have better training performance on real data"""
 		train_data, train_labels = self.real_data()
@@ -115,26 +124,40 @@ class GraderTestCase(unittest.TestCase):
 
 			assert num_correct_deep > num_correct_shallow, "Deep tree didn't improve training accuracy over shallow tree."
 
-			shallow_tree = deep_tree
 			shallow_predictions = deep_predictions
 
-	# @timeout_decorator.timeout(60, exception_message="Decision tree took too long on real data.")
-	def test_decision_tree_test_accuracy(self):
+	@staticmethod
+	def test_decision_tree_test_accuracy():
 		"""Test that decision tree accuracy is sufficiently high."""
 		num_words, num_training, num_testing, train_data, test_data, train_labels, test_labels = load_all_data()
+
+		# do feature selection
+		d = 5000
+		gain = calculate_information_gain(train_data, train_labels)
+
+		# sort features by calculated information gain
+		ranks = gain.argsort()[::-1]
+
+		train_data = train_data[ranks[:d], :]
+		test_data = test_data[ranks[:d], :]
+
+		# convert training data to dense ndarray
+		train_data = train_data.toarray()
+		test_data = test_data.toarray()
+
+		# start decision tree training
 
 		params = {"max_depth": 16}
 
 		model = decision_tree_train(train_data, train_labels, params)
 		predictions = decision_tree_predict(test_data, model)
 
-		accuracy = np.sum(predictions == test_labels) / float(num_testing) # The accuracy will be transformed to Int in Python 2
+		accuracy = np.sum(predictions == test_labels) / float(num_testing)
 
 		print("Decision tree accuracy was %f" % accuracy)
 
 		assert accuracy > 0.3, "Decision tree accuracy was lower than expected."
 
-	# @timeout_decorator.timeout(10)
 	def test_naive_bayes_simple(self):
 		"""Test naive Bayes on a tiny toy problem."""
 		train_data = np.zeros((4, 4))
@@ -147,11 +170,9 @@ class GraderTestCase(unittest.TestCase):
 		train_data[:, 2] = [0, 0, 1, 0]
 		train_data[:, 3] = [0, 0, 0, 1]
 
-		train_data = csc_matrix(train_data)
-
 		train_labels = np.array([0, 0, 1, 1])
 
-		model = naive_bayes_train(train_data, train_labels, {"alpha": 0})
+		model = naive_bayes_train(train_data, train_labels, {"alpha": 0.1})
 
 		predictions = naive_bayes_predict(train_data, model)
 
@@ -161,10 +182,26 @@ class GraderTestCase(unittest.TestCase):
 
 		self.assertEqual(accuracy, 1.0)
 
-	# @timeout_decorator.timeout(30, exception_message="Naive Bayes took too long on real data.")
-	def test_naive_bayes_accuracy(self):
+	@staticmethod
+	def test_naive_bayes_accuracy():
 		"""Test that decision tree accuracy is sufficiently high."""
 		num_words, num_training, num_testing, train_data, test_data, train_labels, test_labels = load_all_data()
+
+		# do feature selection
+		d = 5000
+		gain = calculate_information_gain(train_data, train_labels)
+
+		# sort features by calculated information gain
+		ranks = gain.argsort()[::-1]
+
+		train_data = train_data[ranks[:d], :]
+		test_data = test_data[ranks[:d], :]
+
+		# convert training data to dense ndarray
+		train_data = train_data.toarray()
+		test_data = test_data.toarray()
+
+		# start naive Bayes training
 
 		params = {"alpha": 1e-4}
 
@@ -175,14 +212,14 @@ class GraderTestCase(unittest.TestCase):
 
 		print("Naive Bayes accuracy was %f" % accuracy)
 
-		assert accuracy > 0.7, "Naive Bayes accuracy was lower than expected."
+		assert accuracy > 0.65, "Naive Bayes accuracy was lower than expected."
 
-	# @timeout_decorator.timeout(1, exception_message="Training too slow.")
-	def test_naive_bayes_speed(self):
+	@staticmethod
+	def test_naive_bayes_speed():
 		"""Check that the decision tree implementation is fast."""
 		n = 50000
 		d = 100
-		train_data = csc_matrix(np.random.randint(0, 1, size=(d, n)))
+		train_data = np.random.randint(0, 1, size=(d, n))
 		train_labels = np.random.randint(0, 5, size=n)
 
 		start_time = time.time()
@@ -190,6 +227,8 @@ class GraderTestCase(unittest.TestCase):
 		model = naive_bayes_train(train_data, train_labels, params)
 		predictions = naive_bayes_predict(train_data, model)
 		end_time = time.time()
+
+		assert predictions.size == n, "naive_bayes_predict didn't return the correct size predictions"
 
 		print("Naive Bayes training and prediction took %f seconds." % (end_time - start_time))
 
@@ -205,12 +244,11 @@ class GraderTestCase(unittest.TestCase):
 		"""Empty predictor for testing cross-validation."""
 		return np.zeros(data.shape[1])
 
-	# @timeout_decorator.timeout(1, exception_message="Cross-validation too slow.")
 	def test_crossval_speed(self):
 		"""Test speed of data splitting for cross validation."""
 		n = 50000
 		d = 100
-		train_data = csc_matrix(np.random.randint(0, 1, size=(d, n)))
+		train_data = np.random.randint(0, 1, size=(d, n))
 		train_labels = np.random.randint(0, 5, size=n)
 
 		start_time = time.time()
@@ -219,7 +257,6 @@ class GraderTestCase(unittest.TestCase):
 
 		assert (time.time() - start_time) < 1.0, "Cross-validation too slow."
 
-	# @timeout_decorator.timeout(60)
 	def test_crossval_correctness(self):
 		"""Test that cross validation returns the correct number of scores."""
 		train_data, train_labels = self.real_data()
@@ -229,10 +266,25 @@ class GraderTestCase(unittest.TestCase):
 			self.assertEqual(len(models), folds)
 
 	@staticmethod
-	# @timeout_decorator.timeout(60)
 	def test_crossval_naive_bayes():
 		"""Test that cross-validation on naive Bayes gives scores close to held-out test accuracy"""
 		num_words, num_training, num_testing, train_data, test_data, train_labels, test_labels = load_all_data()
+
+		# do feature selection
+		d = 5000
+		gain = calculate_information_gain(train_data, train_labels)
+
+		# sort features by calculated information gain
+		ranks = gain.argsort()[::-1]
+
+		train_data = train_data[ranks[:d], :]
+		test_data = test_data[ranks[:d], :]
+
+		# convert training data to dense ndarray
+		train_data = train_data.toarray()
+		test_data = test_data.toarray()
+
+		# start cross-validation
 
 		params = {"alpha": 1e-4}
 
