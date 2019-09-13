@@ -1,5 +1,6 @@
 """This module includes methods for training and predicting using decision trees."""
 import numpy as np
+from tree import Node
 
 
 def calculate_information_gain(data, labels):
@@ -112,7 +113,53 @@ def recursive_tree_train(data, labels, depth, max_depth, num_classes):
     :return: dictionary encoding the learned decision tree node
     :rtype: dict
     """
-    # TODO: INSERT YOUR CODE FOR LEARNING THE DECISION TREE STRUCTURE HERE
+    
+    # Create object of Node class from tree.py
+    node = Node()
+    
+    # If labels have only one class, make that node as leaf node
+    if len(np.unique(labels)) == 1:
+        
+        node.prediction = labels[0]
+        return node
+
+    # If max depth limit reached, make that node as leaf node and 
+    # predict the class with highest probability(count)
+    if depth >= max_depth:
+
+        # Count occurence of each class in current subtree data.
+        class_count = np.zeros(num_classes)
+
+        for c in range(num_classes):
+            class_count[c] = np.sum(labels == c)
+
+        # Make prediction of classes with maximum probability(count)
+        node.prediction = np.argmax(class_count)
+        
+        return node
+    
+    # If labels are more that 2 and depth is less than maximum depth limit 
+    # then proceed
+
+    # calculate information gain for all attributes
+    gain = calculate_information_gain(data,labels)
+    
+    # Set test as the attribute with highest Information Gain
+    node.test = np.argmax(gain)
+    
+    # The following code splits the data and labels for left and right subtree
+    split_indices = np.where(data[node.test])
+    temp_data = data.transpose()
+    mask = np.ones(len(temp_data), dtype=bool)
+    mask_labels = np.ones(len(labels), dtype=bool)
+    mask[split_indices,] = False
+    left_data, right_data = temp_data[split_indices].transpose(), temp_data[mask].transpose()
+    left_labels, right_labels = labels[split_indices], labels[mask]
+    
+    
+    # Recursively call left subtree and right subtree
+    node.left_child = recursive_tree_train(left_data, left_labels, depth+1, max_depth, num_classes) 
+    node.right_child = recursive_tree_train(right_data, right_labels, depth+1, max_depth, num_classes)
 
     return node
 
@@ -127,6 +174,27 @@ def decision_tree_predict(data, model):
     :return: length n numpy array of the predicted class labels
     :rtype: array_like
     """
-    # TODO: INSERT YOUR CODE FOR COMPUTING THE DECISION TREE PREDICTIONS HERE
 
-    return labels
+    predict_labels = []
+    curr_node = model
+
+    # The for loop iterates through the data, per data row.
+    for curr_data in data.T:
+        
+        curr_node = model
+        
+        # The below while loop iterates throught the tree for the current data
+        # Untill a leaf node is found
+        while curr_node.prediction == None:
+            
+            # If value at current node is true, GOTO left subtree
+            if curr_data[curr_node.test] == True:
+                curr_node = curr_node.left_child
+            # If value at current node is false, GOTO right subtree
+            else:
+                curr_node = curr_node.right_child
+        
+        # Add prediction value of current leaf node to the prediction list
+        predict_labels.append(curr_node.prediction)
+
+    return predict_labels
