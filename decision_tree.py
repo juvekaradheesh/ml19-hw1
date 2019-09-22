@@ -175,26 +175,26 @@ def decision_tree_predict(data, model):
     :rtype: array_like
     """
 
-    predict_labels = []
+    predict_labels = np.zeros(len(data.T))
     curr_node = model
 
     # The for loop iterates through the data, per data row.
-    for curr_data in data.T:
-        
-        curr_node = model
-        
-        # The below while loop iterates throught the tree for the current data
-        # Untill a leaf node is found
-        while curr_node.prediction == None:
-            
-            # If value at current node is true, GOTO left subtree
-            if curr_data[curr_node.test] == True:
-                curr_node = curr_node.left_child
-            # If value at current node is false, GOTO right subtree
-            else:
-                curr_node = curr_node.right_child
+    for i, curr_data in enumerate(data.T):
         
         # Add prediction value of current leaf node to the prediction list
-        predict_labels.append(curr_node.prediction)
+        predict_labels[i] = get_prediction(curr_data, model)
+        curr_node.prediction
 
     return predict_labels
+
+def get_prediction(data, model):
+    
+    # If a leaf node is found, predict
+    if model.prediction != None:
+        return model.prediction
+    
+    # If leaf node not found -> recursive call to left or right subtree
+    if data[model.test]:
+        return get_prediction(data, model.left_child)
+    else:
+        return get_prediction(data,model.right_child)

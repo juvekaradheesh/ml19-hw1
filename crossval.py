@@ -39,20 +39,18 @@ def cross_validate(trainer, predictor, all_data, all_labels, folds, params):
     indices = indices.reshape((examples_per_fold, folds))
 
     models = []
-
-    # TODO: INSERT YOUR CODE FOR CROSS VALIDATION HERE
     
-    print("Total folds: ", folds)
-    print("-"*30)
+    # print("Total folds: ", folds)
+    # print("-"*30)
     for cover_fold in range(folds):
         train_indices = np.delete(indices,cover_fold,1).flatten()
         validation_indices = indices[:,cover_fold]
         models.append(trainer(all_data[:,train_indices], all_labels[train_indices], params))
         val_predictions = predictor(all_data[:,validation_indices], models[cover_fold])
         scores[cover_fold] = np.mean(val_predictions == all_labels[validation_indices])
-        print("Training and prediction complete" )
-        print("Fold: ", cover_fold + 1, "Score: ",scores[cover_fold])
-        print("-"*30)
+        # print("Training and prediction complete" )
+        # print("Fold: ", cover_fold + 1, "Score: ",scores[cover_fold])
+        # print("-"*30)
         
     score = np.mean(scores)
 
